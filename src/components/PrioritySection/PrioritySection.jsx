@@ -4,8 +4,6 @@ import React from 'react';
 // নিশ্চিত করুন যে 'আপনার-ইমেজের-সঠিক-পাথ.png' আপনার ফাইল স্ট্রাকচারের সাথে সঠিক।
 // উদাহরণস্বরূপ:
 import PriorityIllustration from "../../assets/banner/location-merchant.png"; 
-// অথবা আপনার ইমেজের ফাইল নেম অনুযায়ী:
-// import PackageIllustration from "../../assets/banner/package-illustration.svg"; 
 
 
 const PrioritySection = () => {
