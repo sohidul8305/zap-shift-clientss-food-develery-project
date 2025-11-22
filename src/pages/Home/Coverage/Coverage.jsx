@@ -22,8 +22,8 @@ const Coverage = () => {
   }
 
   return (
-    <div>
-      <h2 className="text-5xl mb-5">We are available in 64 districts</h2>
+    <div className="mt-5">
+      <h2 className="text-5xl mb-5 text-center font-bold">We are available in 64 districts</h2>
       <div>
         <form onSubmit={handleSearch}>
             <label className="input">
@@ -43,7 +43,7 @@ const Coverage = () => {
 </label>
         </form>
       </div>
-      <div className="border w-full h-[800px]">
+      <div className="border w-full h-[800px] mt-2">
         <MapContainer
           center={position} 
           zoom={8}          
