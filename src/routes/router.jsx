@@ -6,6 +6,8 @@ import serviceCenters from '../../public/serviceCenters.json';
 import AuthLayout from "../Layouts/AuthLayout";
 import Register from "../pages/Auth/Login/Regoster/Register";
 import Login from "../pages/Auth/Login/Login";
+import PrivateRoutes from "./PrivateRoutes";
+import Rider from "../pages/Rider/Rider";
 
 
 
@@ -18,6 +20,11 @@ import Login from "../pages/Auth/Login/Login";
         {
             index: true,
             Component: Home,
+        },
+
+        {
+           path: 'rider',
+           element: <PrivateRoutes><Rider></Rider></PrivateRoutes>
         },
    { 
         path: 'coverage',

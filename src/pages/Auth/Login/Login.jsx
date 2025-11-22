@@ -3,18 +3,21 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../../hooks/useAuth';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import Socallogin from './Sociallogin/Socallogin';
 
 const Login = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
   const { signInUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogin = (data) => {
     signInUser(data.email, data.password)
       .then((result) => {
         console.log("Logged User:", result.user);
+        navigate(location?.state || '/')
       })
       .catch((error) => {
         console.log("Login Error:", error.message);
@@ -49,12 +52,13 @@ const Login = () => {
             <p className="text-red-500">Password must be at least 6 characters</p>
           )}
 
-          <button className="btn btn-neutral mt-4">Login</button>
+          <button className="btn btn-neutral mt-4 bg-[#CAEB66] text-black">Login</button>
         </fieldset>
 
         <p className="text-center mt-2">
-          New to Zap Shift?{" "}
-          <Link className="text-blue-500 underline" to="/register">
+          New to Zap Shift?
+          <Link           state={location.state}
+ className="text-blue-500 underline" to="/register">
             Register
           </Link>
         </p>
