@@ -22,8 +22,31 @@ const SendPercel = () => {
   const handleSendPrecel = (data) => {
     console.log("FORM DATA:", data);
 
-    const sameDistrict = data.senderDistrict === data.receiverDistrict;
-    console.log(sameDistrict)
+    const isDocument = data.parceltype === 'document';
+
+
+    const isSameDistrict = data.senderDistrict === data.receiverDistrict;
+    const parcelWeight = parseFloat(data.parcelWeight);
+
+    let cost = 0;
+    if(isDocument){
+      cost = isSameDistrict ? 60 : 80;
+    }
+    else {
+         if(parcelWeight < 3 ){
+          cost = isSameDistrict ? 110 : 150; 
+         }
+         else{
+          const minCharge = isSameDistrict ? 110 : 150;
+          const extraWeight = parcelWeight -3;
+          const extraCharge = isSameDistrict ? extraWeight * 40 :
+          extraWeight * 40 + 40;
+
+          cost = minCharge + extraCharge;
+
+         }
+    }
+    console.log('cost', cost)
   };
 
   return (
