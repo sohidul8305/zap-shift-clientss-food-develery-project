@@ -6,12 +6,13 @@ import { FaEdit } from "react-icons/fa";
 import { FaTrashCan } from "react-icons/fa6";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import Swal from "sweetalert2";
+import { Link } from "react-router";
 
 const MyParcels = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
 
-  const { data: parcels = [], refetch  } = useQuery({
+  const { data: parcels = [], refetch } = useQuery({
     queryKey: ["my-parcels", user?.email],
     enabled: !!user?.email,
     queryFn: async () => {
@@ -20,38 +21,36 @@ const MyParcels = () => {
     },
   });
 
-  const handleDelete = (id) => {
-    console.log(id);
-
+  const handleDelete = async (id) => {
     Swal.fire({
-  title: "Are you sure?",
-  text: "You won't be able to revert this!",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#3085d6",
-  cancelButtonColor: "#d33",
-  confirmButtonText: "Yes, delete it!"
-}).then((result) => {
-  if (result.isConfirmed) {
+      title: "Are you sure?",
+      text: "This parcel will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await axiosSecure.delete(`/parcels/${id}`);
 
-    axiosSecure.delete(`/parcels/${id}`)
-    .then(res => {
-        console.log(res.data);
+          if (res.data.deletedCount > 0) {
+            refetch();
 
-           if(res.data.deletedCount){
-            // refesh data in the ui
-            refetch()
-          Swal.fire({
-      title: "Deleted!",
-      text: "Your parcel request has been deleted.",
-      icon: "success"
+            Swal.fire({
+              title: "Deleted!",
+              text: "Your parcel has been deleted.",
+              icon: "success",
+            });
+          }
+        } catch (error) {
+          console.error("Delete Error:", error);
+          Swal.fire("Error!", "Failed to delete parcel.", "error");
+        }
+      }
     });
-    }
-    })
-  }
-});
   };
-
 
   return (
     <div className="p-5">
@@ -66,7 +65,7 @@ const MyParcels = () => {
               <th>#</th>
               <th>Name</th>
               <th>Cost</th>
-              <th>Status</th>
+              <th> Delevery Status</th>
               <th>Payment</th>
               <th>Ordered</th>
               <th>Action</th>
@@ -79,26 +78,31 @@ const MyParcels = () => {
                 <td>{parcel.parcelName}</td>
                 <td>{parcel.cost ? parcel.cost + " tk" : "N/A"}</td>
                 <td>{parcel.deliveryStatus || "Pending"}</td>
-                <td>{parcel.paymentStatus || "Pending"}</td>
+                {
+                  parcel.paymentStatus === 'paid' ? <span className="green-4010">paid</span>
+                  : 
+                  <Link to={`/dashboard/payment/${parcel._id}`}><button className="btn btn-primary btn-small text-blac">Pay</button></Link>
+                }
                 <td>
                   {parcel.createdAt
                     ? new Date(parcel.createdAt).toLocaleString()
                     : "N/A"}
                 </td>
+
                 <td>
                   <div className="flex">
-                    <button className="btn btn-squre hover:bg-primary">
+                    <button className="btn btn-square hover:bg-primary">
                       <FaMagnifyingGlass />
                     </button>
-                    <button
-                     
-                      className="btn btn-squre hover:bg-primary mx-2"
-                    >
-                     <FaEdit />
+
+                    <button className="btn btn-square hover:bg-primary mx-2">
+                      <FaEdit />
                     </button>
+
                     <button
-                     onClick={() => handleDelete(parcel._id)}
-                    className="btn btn-squre hover:bg-primary">
+                      onClick={() => handleDelete(parcel._id)}
+                      className="btn btn-square hover:bg-primary"
+                    >
                       <FaTrashCan />
                     </button>
                   </div>

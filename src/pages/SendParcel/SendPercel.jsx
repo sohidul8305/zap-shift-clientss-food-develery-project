@@ -10,48 +10,64 @@ const SendParcel = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
 
-  const serviceCenters = useLoaderData();
+  const serviceCenters = useLoaderData() || [];
   const regions = [...new Set(serviceCenters.map(c => c.region))];
 
   const senderRegion = useWatch({ control, name: "senderRegion" });
   const receiverRegion = useWatch({ control, name: "receiverRegion" });
 
-  const districtsByRegion = (region) =>
-    region ? serviceCenters.filter(c => c.region === region).map(c => c.district) : [];
+  const districtsByRegion = (region) => {
+    if (!region) return [];
+    return serviceCenters
+      .filter(c => c.region === region)
+      .map(c => c.district);
+  };
 
-  const handleSendParcel = (data) => {
+  const handleSendParcel = async (data) => {
     const isDocument = data.parcelType === "document";
     const parcelWeight = parseFloat(data.parcelWeight || 0);
     const isSameDistrict = data.senderDistrict === data.receiverDistrict;
 
     let cost = 0;
-    if (isDocument) cost = isSameDistrict ? 60 : 80;
-    else {
-      if (parcelWeight < 3) cost = isSameDistrict ? 110 : 150;
-      else {
+    if (isDocument) {
+      cost = isSameDistrict ? 60 : 80;
+    } else {
+      if (parcelWeight < 3) {
+        cost = isSameDistrict ? 110 : 150;
+      } else {
         const minCharge = isSameDistrict ? 110 : 150;
         const extraWeight = parcelWeight - 3;
-        const extraCharge = isSameDistrict ? extraWeight * 40 : extraWeight * 40 + 40;
+        const extraCharge = extraWeight * 40 + (isSameDistrict ? 0 : 40);
         cost = minCharge + extraCharge;
       }
     }
 
-    data.cost = cost;
-    data.senderEmail = user?.email;
-    data.deliveryStatus = "Pending";
-    data.paymentStatus = "Pending";
+    // Auto fill values (Backend এ যাবে)
+    const parcelData = {
+      ...data,
+      parcelWeight,
+      cost,
+      senderEmail: user?.email,
+      deliveryStatus: "Pending",
+      paymentStatus: "Pending",
+      bookingDate: new Date(),
+    };
 
     Swal.fire({
       title: "Agree with the Cost?",
       text: `You will be charged ${cost} Taka`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, I agree!"
-    }).then(result => {
+      confirmButtonText: "Yes, I agree!",
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        axiosSecure.post("/parcels", data)
-          .then(() => Swal.fire("Success!", "Parcel submitted.", "success"))
-          .catch(() => Swal.fire("Error!", "Failed to submit parcel.", "error"));
+        try {
+          await axiosSecure.post("/parcels", parcelData);
+          Swal.fire("Success!", "Parcel submitted.", "success");
+        } catch (err) {
+          console.log(err);
+          Swal.fire("Error!", "Failed to submit parcel.", "error");
+        }
       }
     });
   };
@@ -79,11 +95,11 @@ const SendParcel = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 my-8">
           <div>
             <label>Parcel Name</label>
-            <input type="text" {...register("parcelName")} className="input w-full" />
+            <input type="text" {...register("parcelName", { required: true })} className="input w-full" />
           </div>
           <div>
             <label>Parcel Weight (kg)</label>
-            <input type="number" {...register("parcelWeight")} className="input w-full" />
+            <input type="number" {...register("parcelWeight", { required: true })} className="input w-full" />
           </div>
         </div>
 
@@ -93,11 +109,9 @@ const SendParcel = () => {
           {/* Sender */}
           <div className="border p-4 rounded-md shadow-md">
             <h3 className="text-2xl font-semibold mb-4">Sender Details</h3>
+
             <label>Sender Name</label>
             <input type="text" {...register("senderName")} className="input w-full mb-2" />
-            
-            <label>Sender Email</label>
-            <input type="text" {...register("senderEmail")}  className="input w-full mb-2" />
 
             <label>Sender Region</label>
             <select {...register("senderRegion")} className="select w-full mb-2">
@@ -124,9 +138,10 @@ const SendParcel = () => {
           {/* Receiver */}
           <div className="border p-4 rounded-md shadow-md">
             <h3 className="text-2xl font-semibold mb-4">Receiver Details</h3>
+
             <label>Receiver Name</label>
             <input type="text" {...register("receiverName")} className="input w-full mb-2" />
-            
+
             <label>Receiver Email</label>
             <input type="text" {...register("receiverEmail")} className="input w-full mb-2" />
 

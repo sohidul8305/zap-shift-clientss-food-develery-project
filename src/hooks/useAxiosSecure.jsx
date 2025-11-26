@@ -1,3 +1,4 @@
+// src/hooks/useAxiosSecure.js
 import axios from "axios";
 
 const axiosSecure = axios.create({
@@ -5,5 +6,6 @@ const axiosSecure = axios.create({
   withCredentials: true,
 });
 
-const useAxiosSecure = () => axiosSecure;
-export default useAxiosSecure;
+export default function useAxiosSecure() {
+  return axiosSecure;
+}
