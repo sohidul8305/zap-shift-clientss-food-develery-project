@@ -70,6 +70,7 @@ export const router = createBrowserRouter([
       {
           path: 'my-parcels',
           Component: MyParcels,
+        
       }
      ]
       }
