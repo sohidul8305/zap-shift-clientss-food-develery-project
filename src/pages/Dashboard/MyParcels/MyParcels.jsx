@@ -93,9 +93,9 @@ const handlePayment = async (parcel) => {
                 <td>{parcel.cost ? parcel.cost + " tk" : "N/A"}</td>
                 <td>{parcel.deliveryStatus || "Pending"}</td>
                 {
-                  parcel.paymentStatus === 'paid' ? <span className="green-4010">paid</span>
+                  parcel.paymentStatus === 'paid' ? <span className="green-400">paid</span>
                   : 
-               <button onClick={ () => handlePayment(parcel)} className="btn btn-primary btn-small text-blac">Pay</button>
+               <button onClick={ () => handlePayment(parcel)} className="btn btn-primary btn-small text-black">Pay</button>
                 }
                 <td>
                   {parcel.createdAt

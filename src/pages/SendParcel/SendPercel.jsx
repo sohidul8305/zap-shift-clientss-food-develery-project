@@ -65,6 +65,7 @@ const SendParcel = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         nevagite('/dashboard/my-parcels')
+      
         try {
           await axiosSecure.post("/parcels", parcelData);
           Swal.fire({
@@ -77,6 +78,7 @@ const SendParcel = () => {
         } catch (err) {
           console.log(err);
           Swal.fire("Error!", "Failed to submit parcel.", "error");
+           
         }
       }
     });

@@ -2,6 +2,7 @@ import React from 'react';
 import Logo from '../../../../components/Logo/Logo';
 import { Link, NavLink } from 'react-router';
 import useAuth from '../../../../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
 
@@ -14,6 +15,8 @@ const Navbar = () => {
     })
     .catch(error =>{
       console.log(error)
+      toast.error ("Please Login First !")
+
     })
   }
     const links = <>
