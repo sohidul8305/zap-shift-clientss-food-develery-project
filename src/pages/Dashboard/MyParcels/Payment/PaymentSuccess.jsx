@@ -1,43 +1,55 @@
-// src/pages/Dashboard/Payment/PaymentSuccess.jsx
-
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import useAuth from "../../../../hooks/useAuth";
 import useAxiosSecure from "../../../../hooks/useAxiosSecure";
 
-const PaymentSuccess = () => {
-  const [searchParams] = useSearchParams();
-  const [paymentInfo, setPaymentInfo] = useState({});
-  const sessionId = searchParams.get("session_id");
+const PaymentHistory = () => {
+  const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
 
-  useEffect(() => {
-    if (sessionId) {
-      axiosSecure
-        .patch(`/payment-success?session_id=${sessionId}`)
-        .then((res) => {
-          console.log(res.data);
-
-          setPaymentInfo({
-            transactionId: res.data.transactionId,
-            trackingId: res.data.trackingId,
-          });
-        });
-    }
-  }, [sessionId, axiosSecure]);
+  const { data: payments = [] } = useQuery({
+    queryKey: ["payments", user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/payments?email=${user.email}`);
+      return res.data;
+    },
+  });
 
   return (
-    <div className="p-6">
-      <h2 className="text-4xl font-bold text-green-600">Payment Successful</h2>
+    <div>
+      <h2 className="text-4xl text-green-500">
+        Payment History: {payments.length}
+      </h2>
 
-      <p className="mt-4 text-xl">
-        <strong>Your Transaction ID:</strong> {paymentInfo.transactionId}
-      </p>
+      <div className="overflow-x-auto mt-5">
+        <table className="table table-zebra">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Parcel Name</th>
+              <th>Amount</th>
+              <th>Transaction ID</th>
+              <th>Payment Status</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
 
-      <p className="mt-2 text-xl">
-        <strong>Your Parcel Tracking ID:</strong> {paymentInfo.trackingId}
-      </p>
+          <tbody>
+            {payments.map((p, i) => (
+              <tr key={p._id}>
+                <td>{i + 1}</td>
+                <td>{p.parcelName}</td>
+                <td>${p.amount}</td>
+                <td>{p.transactionId}</td>
+                <td>{p.paymentStatus}</td>
+                <td>{new Date(p.createdAt).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default PaymentSuccess;
+export default PaymentHistory;

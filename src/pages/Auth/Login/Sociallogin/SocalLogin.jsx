@@ -3,10 +3,12 @@
 import React from "react";
 import useAuth from "../../../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router";
+import useAxiosSecure from "../../../../hooks/useAxiosSecure";
 
 const Socallogin = () => {
 
   const { signInGoogle } = useAuth();
+  const axiosSecures = useAxiosSecure();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -15,8 +17,20 @@ const Socallogin = () => {
     signInGoogle()
       .then((result) => {
         console.log("Google Login User:", result.user);
-        navigate(location.state || '/');
+
+          // create user in the database
+      const userInfo = {
+        email:result.user.email,
+        displayName:result.user.displayName,
+      photoURl: result.user.photoURl
+      }
+      axiosSecures.post('/users', userInfo)
+      .then(res => {
+        console.log('user data has been stored', res)
+          navigate(location.state || '/');
       })
+      })
+
       .catch((error) => {
         console.log("Google Login Error:", error.message);
       });

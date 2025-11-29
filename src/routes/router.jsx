@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router"; // react-router-dom
 import RootLayouts from "../Layouts/RootLayouts";
 import Home from "../pages/Home/Home/Home";
 import Coverage from "../pages/Home/Coverage/Coverage";
@@ -14,90 +14,87 @@ import Payment from "../pages/Dashboard/MyParcels/Payment/Payment";
 import PaymentSuccess from "../pages/Dashboard/MyParcels/Payment/PaymentSuccess";
 import PaymentCancelled from "../pages/Dashboard/MyParcels/Payment/PaymentCancelled";
 import PaymentHistory from "../pages/Dashboard/MyParcels/PaymentHistory/PaymentHistory";
+import AppreveRiders from "../pages/Dashboard/MyParcels/ApproveRiders/AppreveRiders";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: RootLayouts,
+    element: <RootLayouts />,
     children: [
       {
         index: true,
-        Component: Home,
+        element: <Home />,
       },
-
       {
-        path: 'rider',
-        element: <PrivateRoutes><Rider /></PrivateRoutes>
+        path: "rider",
+        element: <PrivateRoutes><Rider /></PrivateRoutes>,
+        loader: () => fetch("/serviceCenters.json").then(res => res.json()),
       },
-
       {
-        path: 'send-parcel',
+        path: "send-parcel",
         element: <PrivateRoutes><SendPercel /></PrivateRoutes>,
-        loader: () => 
-          fetch('/serviceCenters.json')
+        loader: () =>
+          fetch("/serviceCenters.json")
             .then(res => {
-              if (!res.ok) throw new Error('Failed to fetch service centers');
+              if (!res.ok) throw new Error("Failed to fetch service centers");
               return res.json();
-            })
+            }),
       },
-
-      { 
-        path: 'coverage',
-        Component: Coverage,
+      {
+        path: "coverage",
+        element: <Coverage />,
         loader: () => 
-          fetch('/serviceCenters.json')
+          fetch("/serviceCenters.json")
             .then(res => {
-              if (!res.ok) throw new Error('Failed to fetch service centers');
+              if (!res.ok) throw new Error("Failed to fetch service centers");
               return res.json();
-            })
-      }
-    ]
+            }),
+      },
+    ],
   },
 
   {
     path: "/",
-    Component: AuthLayout,
+    element: <AuthLayout />,
     children: [
       {
-        path: 'login',
-        Component: Login,
+        path: "login",
+        element: <Login />,
       },
       {
-        path: 'register',
-        Component: Register,
-      }
-      ,
-      {
-      path: 'dashboard',
-      element: <PrivateRoutes><DashboardLayout></DashboardLayout></PrivateRoutes>,
-     children: [
-      {
-          path: 'my-parcels',
-          Component: MyParcels,
-        
-      }, 
-      {
-        path: 'payment/:parcelId',
-       Component: Payment,
-
+        path: "register",
+        element: <Register />,
       },
       {
-        path: 'payment-history',
-       Component: PaymentHistory,
-
+        path: "dashboard",
+        element: <PrivateRoutes><DashboardLayout /></PrivateRoutes>,
+        children: [
+          {
+            path: "my-parcels",
+            element: <MyParcels />,
+          },
+          {
+            path: "payment/:parcelId",
+            element: <Payment />,
+          },
+          {
+            path: "payment-history",
+            element: <PaymentHistory />,
+          },
+          {
+            path: "payment-success",
+            element: <PaymentSuccess />,
+          },
+          {
+            path: "payment-cancel",
+            element: <PaymentCancelled />,
+          },
+          {
+            path: "approve-riders",
+            element: <AppreveRiders />,
+          },
+        ],
       },
-      {
-        path: 'payment-success',
-       Component: PaymentSuccess,
-
-      },
-      {
-        path: 'payment-cancel',
-       Component: PaymentCancelled,
-
-      }
-     ]
-      }
-    ]
-  }
+    ],
+  },
 ]);

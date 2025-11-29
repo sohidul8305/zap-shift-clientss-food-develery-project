@@ -1,49 +1,58 @@
-import axios from 'axios';
-import React, { useEffect } from 'react';
-import useAuth from './useAuth';
-import { useNavigate } from 'react-router';
+import axios from "axios";
+import { useEffect } from "react";
+import useAuth from "./useAuth";
+import { useNavigate, useLocation } from "react-router";
 
 const axiosSecure = axios.create({
-    baseURL: 'http://localhost:3000'
-})
+  baseURL: "http://localhost:3000",
+  withCredentials: true,
+});
 
 const useAxiosSecure = () => {
-    const { user, logOut } = useAuth();
-    const navigate = useNavigate();
+  const { user, logOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    useEffect(() => {
-        // intercept request
-        const reqInterceptor = axiosSecure.interceptors.request.use(config => {
-      config.headers.Authorization = `Bearer$ {user?.accessToken}`
-            return config
-        })
+  useEffect(() => {
+    if (!user?.accessToken) return;
 
-        // interceptor response
-        const resInterceptor = axiosSecure.interceptors.response.use((response) => {
-            return response;
-        }, (error) => {
-            console.log(error);
+    // REQUEST INTERCEPTOR
+    const reqInterceptor = axiosSecure.interceptors.request.use(
+      (config) => {
+        config.headers.Authorization = `Bearer ${user.accessToken}`;
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-            const statusCode = error.status;
-            if (statusCode === 401 || statusCode === 403) {
-                logOut()
-                    .then(() => {
-                        navigate('/login')
-                    })
-            }
+    // RESPONSE INTERCEPTOR
+    const resInterceptor = axiosSecure.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const status = error?.response?.status;
 
-
-            return Promise.reject(error);
-        })
-
-        return () => {
-            axiosSecure.interceptors.request.eject(reqInterceptor);
-            axiosSecure.interceptors.response.eject(resInterceptor);
+        // Token invalid → logout & redirect
+        if (status === 401 || status === 403) {
+          logOut().finally(() => {
+            navigate("/login", {
+              state: { from: location },
+              replace: true,
+            });
+          });
         }
 
-    }, [user, logOut, navigate])
+        return Promise.reject(error);
+      }
+    );
 
-    return axiosSecure;
+    // CLEANUP
+    return () => {
+      axiosSecure.interceptors.request.eject(reqInterceptor);
+      axiosSecure.interceptors.response.eject(resInterceptor);
+    };
+  }, [user?.accessToken, logOut, navigate, location]);
+
+  return axiosSecure;
 };
 
 export default useAxiosSecure;
