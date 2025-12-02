@@ -15,7 +15,7 @@ const Navbar = () => {
     })
     .catch(error =>{
       console.log(error)
-      toast.error ("Please Login First !")
+
 
     })
   }
