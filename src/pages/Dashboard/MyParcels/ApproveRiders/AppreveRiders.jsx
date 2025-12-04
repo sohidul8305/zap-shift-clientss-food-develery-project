@@ -4,13 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { FaCheck, FaTimes, FaTrashAlt } from 'react-icons/fa';
 
-const AppreveRiders = () => {
+const ApproveRiders = () => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
 
-  // ===================
-  // 1️⃣ Fetch All Riders
-  // ===================
+  // Fetch all riders
   const { data: riders = [], isLoading, isError } = useQuery({
     queryKey: ['riders'],
     queryFn: async () => {
@@ -19,40 +17,30 @@ const AppreveRiders = () => {
     }
   });
 
-  // =============================
-  // 2️⃣ Approve / Reject Mutation
-  // =============================
+  // Approve/Reject rider mutation
   const { mutateAsync: statusMutate } = useMutation({
     mutationFn: async ({ id, newStatus, email }) => {
-      await axiosSecure.patch(`/riders/${id}`, { status: newStatus, email });
-      return { id, newStatus };
+      const workStatus = newStatus === "approved" ? "available" : null;
+      await axiosSecure.patch(`/riders/${id}`, { status: newStatus, workStatus, email });
+      return { id, newStatus, workStatus };
     },
-    onMutate: async ({ id, newStatus }) => {
+    onMutate: async ({ id, newStatus, workStatus }) => {
       await queryClient.cancelQueries(['riders']);
       const previousRiders = queryClient.getQueryData(['riders']);
-
       queryClient.setQueryData(['riders'], oldData =>
         oldData.map(rider =>
-          rider._id === id ? { ...rider, status: newStatus } : rider
+          rider._id === id ? { ...rider, status: newStatus, workStatus } : rider
         )
       );
-
-
       return { previousRiders };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       queryClient.setQueryData(['riders'], context.previousRiders);
-      // কোনো Swal error দেখানো হবে না
     },
-    onSettled: () => {
-      queryClient.invalidateQueries(['riders']);
-    }
+    onSettled: () => queryClient.invalidateQueries(['riders'])
   });
 
-  // ===================
-  // 3️⃣ Delete Mutation
-  // ===================
+  // Delete rider mutation
   const { mutateAsync: deleteMutate } = useMutation({
     mutationFn: async (id) => {
       await axiosSecure.delete(`/riders/${id}`);
@@ -66,9 +54,7 @@ const AppreveRiders = () => {
     }
   });
 
-  // ===================
   // Handlers
-  // ===================
   const handleApprove = (rider) => {
     Swal.fire({
       title: `Approve ${rider.riderName}?`,
@@ -109,9 +95,7 @@ const AppreveRiders = () => {
     });
   };
 
-  // ===================
-  // Badge Styling
-  // ===================
+  // Badge styling
   const getStatusBadgeClasses = (status) => {
     switch (status) {
       case "approved":
@@ -124,9 +108,6 @@ const AppreveRiders = () => {
     }
   };
 
-  // ===================
-  // Loading / Error
-  // ===================
   if (isLoading) return <h2 className="text-center py-10">Loading…</h2>;
   if (isError) return <h2 className="text-center py-10 text-red-500">Error loading data</h2>;
 
@@ -145,18 +126,19 @@ const AppreveRiders = () => {
               <th>Location</th>
               <th>Documents</th>
               <th>Bike</th>
-              <th>Status</th>
+              <th>Work Status</th>
+              <th>Application Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {riders.map((rider, index) => (
               <tr key={rider._id} className="hover:bg-blue-50">
-                <th>{index + 1}</th>
+                <td>{index + 1}</td>
                 <td>
-                  <strong>{rider.riderName}</strong>
-                  <div className="text-sm opacity-60">{rider.riderEmail}</div>
-                  <div className="text-sm opacity-60">Phone: {rider.phoneNo}</div>
+                  <strong>{rider.riderName}</strong><br/>
+                  <span className="text-sm opacity-70">{rider.riderEmail}</span><br/>
+                  <span className="text-sm opacity-70">Phone: {rider.phoneNo}</span>
                 </td>
                 <td>{rider.district}, {rider.riderRegion}</td>
                 <td>
@@ -164,12 +146,23 @@ const AppreveRiders = () => {
                   NID: {rider.nationalIdNo}
                 </td>
                 <td>
-                  {rider.bikeModel}<br />
+                  {rider.bikeModel} <br />
                   <span className="text-sm opacity-60">Reg: {rider.bikeRegistrationNo}</span>
                 </td>
+                {/* Work Status */}
+                <td>
+                  {rider.workStatus ? (
+                    <span className="badge badge-lg bg-green-100 text-green-700 font-bold">
+                      {rider.workStatus}
+                    </span>
+                  ) : (
+                    <span className="text-sm opacity-60">N/A</span>
+                  )}
+                </td>
+                {/* Application Status */}
                 <td>
                   <span className={`badge badge-lg ${getStatusBadgeClasses(rider.status)}`}>
-                    {rider.status}
+                    {rider.status || 'pending'}
                   </span>
                 </td>
                 <td className="flex gap-2">
@@ -186,4 +179,4 @@ const AppreveRiders = () => {
   );
 };
 
-export default AppreveRiders;
+export default ApproveRiders;
