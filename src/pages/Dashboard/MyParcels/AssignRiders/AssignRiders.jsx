@@ -3,32 +3,37 @@ import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 import { useQuery } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 
-
 const AssignRiders = () => {
-    const [selectedParcel, setSelectedParcel] = useState(null);
-    const axiosSecure = useAxiosSecure();
-    const riderModalRef = useRef();
+  const axiosSecure = useAxiosSecure();
+  const riderModalRef = useRef();
+  const [selectedParcel, setSelectedParcel] = useState(null);
 
-    const { data: parcels = [], refetch: parcelsRefetch } = useQuery({
-        queryKey: ['parcels', 'pending-pickup'],
-        queryFn: async () => {
-            const res = await axiosSecure.get('/parcels?deliveryStatus=pending-pickup')
-            return res.data;
-        }
-    })
+  // =========================
+  // Fetch pending parcels
+  // =========================
+  const { data: parcels = [], refetch: refetchParcels } = useQuery({
+    queryKey: ['parcels', 'pending-pickup'],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/parcels?deliveryStatus=pending-pickup');
+      return res.data || [];
+    },
+  });
 
   // =========================
   // Fetch available riders for selected parcel
   // =========================
-    const { data: riders = [] } = useQuery({
-        queryKey: ['riders', selectedParcel?.senderDistrict, 'available'],
-        enabled: !!selectedParcel,
-        queryFn: async () => {
-            const res = await axiosSecure.get(`/riders?status=approved&district=${selectedParcel?.senderDistrict}&workStatus=available`);
-            return res.data;
-        }
-    })
+  const { data: ridersData = { count: 0, riders: [] } } = useQuery({
+    queryKey: ['riders', selectedParcel?.senderDistrict],
+    enabled: !!selectedParcel?.senderDistrict,
+    queryFn: async () => {
+      const res = await axiosSecure.get(
+        `/riders?status=approved&district=${selectedParcel?.senderDistrict}&workStatus=available`
+      );
+      return res.data || { count: 0, riders: [] };
+    },
+  });
 
+  const riders = ridersData.riders || [];
 
   // =========================
   // Open modal and set selected parcel
@@ -41,18 +46,30 @@ const AssignRiders = () => {
   // =========================
   // Assign rider to parcel
   // =========================
-  const handleAssignRider = async (riderId) => {
+  const handleAssignRider = async (rider) => {
     if (!selectedParcel) return;
 
+    const riderAssignInfo = {
+      riderId: rider._id,
+      riderEmail: rider.riderEmail,
+      riderName: rider.riderName,
+      parcelId: selectedParcel._id
+    };
+
+
     try {
-      const res = await axiosSecure.patch(`/parcels/${selectedParcel._id}/assign-rider`, {
-        riderId,
-      });
+      const res = await axiosSecure.patch(
+        `/parcels/${selectedParcel._id}/assign-rider`,
+        riderAssignInfo
+      );
 
       if (res.data.success) {
+        riderModalRef.current.close()
         Swal.fire('Success!', 'Rider assigned successfully', 'success');
         riderModalRef.current.close();
         refetchParcels();
+      } else {
+        Swal.fire('Error!', 'Failed to assign rider', 'error');
       }
     } catch (error) {
       console.error(error);
@@ -62,9 +79,7 @@ const AssignRiders = () => {
 
   return (
     <div className="p-5">
-      <h2 className="text-3xl font-bold mb-5">
-        Assign Riders: {parcels.length}
-      </h2>
+      <h2 className="text-3xl font-bold mb-5">Assign Riders: {parcels.length}</h2>
 
       {/* Parcels Table */}
       <div className="overflow-x-auto">
@@ -105,7 +120,7 @@ const AssignRiders = () => {
       <dialog ref={riderModalRef} className="modal modal-bottom sm:modal-middle">
         <div className="modal-box">
           <h3 className="font-bold text-lg">
-            Select Rider ({riders.length} available)
+            Select Rider ({ridersData.count} available)
           </h3>
           <div className="py-4 space-y-2 max-h-60 overflow-y-auto">
             {riders.length > 0 ? (
@@ -118,7 +133,7 @@ const AssignRiders = () => {
                   </div>
                   <button
                     className="btn btn-sm btn-success"
-                    onClick={() => handleAssignRider(rider._id)}
+                    onClick={() => handleAssignRider(rider)}
                   >
                     Assign
                   </button>
