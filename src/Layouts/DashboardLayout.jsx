@@ -3,8 +3,10 @@ import { CiDeliveryTruck } from 'react-icons/ci';
 import { FaMotorcycle, FaRegCreditCard, FaUsers } from 'react-icons/fa';
 import { Link, NavLink, Outlet } from 'react-router';
 import { RiEBikeFill } from 'react-icons/ri';
+import useRole from '../hooks/useRole';
 
 const DashboardLayout = () => {
+    const {role,} = useRole();
 
     return (
         <div className="drawer lg:drawer-open max-w-7xl mx-auto ">
@@ -44,13 +46,9 @@ const DashboardLayout = () => {
                                 <span className="is-drawer-close:hidden">Payment History</span>
                             </NavLink>
                         </li>
-                        <li>
-                            <NavLink className="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Payment History" to="/dashboard/payment-history">
-                                <FaRegCreditCard />
-                                <span className="is-drawer-close:hidden">Payment History</span>
-                            </NavLink>
-                        </li>
-                       
+                        {
+                            role === 'admin' && <>
+
                                 <li>
                                     <NavLink className="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Approve Riders" to="/dashboard/approve-riders">
                                         <FaMotorcycle />
@@ -69,7 +67,17 @@ const DashboardLayout = () => {
                                         <span className="is-drawer-close:hidden">Users Management</span>
                                     </NavLink>
                                 </li>
-                         
+
+
+                            </>
+                        }
+                        <li>
+                            <NavLink className="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Payment History" to="/dashboard/payment-history">
+                                <FaRegCreditCard />
+                                <span className="is-drawer-close:hidden">Payment History</span>
+                            </NavLink>
+                        </li>
+
                         
 
                         {/* List item */}
