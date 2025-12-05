@@ -18,6 +18,9 @@ import AppreveRiders from "../pages/Dashboard/MyParcels/ApproveRiders/AppreveRid
 import UsersManagement from "../pages/Dashboard/MyParcels/UsersManagement/UsersManagement";
 import AdminRoute from "./AdminRoute";
 import AssignRiders from "../pages/Dashboard/MyParcels/AssignRiders/AssignRiders";
+import RiderRoutes from "./RiderRoute";
+import AssignDeliveris from "../pages/Dashboard/MyParcels/AssignDeliveris/AssignedDeliveries";
+import RiderRoute from "./RiderRoute";
 
 export const router = createBrowserRouter([
   {
@@ -92,6 +95,13 @@ export const router = createBrowserRouter([
             path: "payment-cancel",
             element: <PaymentCancelled />,
           },
+          // rider only routes
+          {
+           path: "assigned-deliveries",
+          element:<RiderRoute><AssignDeliveris></AssignDeliveris></RiderRoute>
+          },
+
+          // admin relateds routes
           {
             path: "approve-riders",
             element:<AdminRoute>

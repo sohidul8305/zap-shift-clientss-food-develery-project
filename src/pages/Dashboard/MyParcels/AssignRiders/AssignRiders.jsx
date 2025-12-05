@@ -29,7 +29,8 @@ const AssignRiders = () => {
       const res = await axiosSecure.get(
         `/riders?status=approved&district=${selectedParcel?.senderDistrict}&workStatus=available`
       );
-      return res.data || { count: 0, riders: [] };
+      console.log(res.data)
+      return res.data ;
     },
   });
 
@@ -107,7 +108,7 @@ const AssignRiders = () => {
                     className="btn btn-primary btn-sm text-black"
                     onClick={() => openAssignRiderModal(parcel)}
                   >
-                    Assign Rider
+                    Find Rider
                   </button>
                 </td>
               </tr>
@@ -120,11 +121,11 @@ const AssignRiders = () => {
       <dialog ref={riderModalRef} className="modal modal-bottom sm:modal-middle">
         <div className="modal-box">
           <h3 className="font-bold text-lg">
-            Select Rider ({ridersData.count} available)
+            Select Rider ({ridersData.length} available)
           </h3>
           <div className="py-4 space-y-2 max-h-60 overflow-y-auto">
-            {riders.length > 0 ? (
-              riders.map((rider) => (
+            {ridersData.length > 0 ? (
+              ridersData.map((rider) => (
                 <div key={rider._id} className="flex justify-between items-center border p-2 rounded">
                   <div>
                     <strong>{rider.riderName}</strong> <br />
